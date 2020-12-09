@@ -1,13 +1,17 @@
 const express = require("express");
 const path = require("path");
-const jwt = require("jsonwebtoken");
+const jwt = require("jwt-simple");
 const cors = require("cors");
 const axios = require("axios");
 const config = require("./config.js");
 const app = express();
+const bcrypt = require("./bcrypt");
 
 const configOptions = require("./knexfile").development;
 const knex = require("knex")(configOptions);
+
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 //Handle general request
 app.get("*", (req, res) => {
@@ -15,42 +19,46 @@ app.get("*", (req, res) => {
 });
 
 app.post("/api/login", async function (req, res) {
-  console.log("logging in");
-  console.log(req.body.email, req.body.password);
-  // FROM A REAL DATABASE
-  if (req.body.email && req.body.password) {
-    let email = req.body.email;
-    let password = req.body.password;
-    let query = await knex
-      .select("*")
-      .from("users")
-      .where("email", email)
-      .andWhere("password", password);
+  if (req.body.username && req.body.password) {
+    const username = req.body.username;
+    const password = req.body.password;
 
-    await query;
+    // Read from database to check if user exists
+    const users = await knex("accounts").where({ username });
+    if (users.length === 0) {
+      res.sendStatus(401);
+    }
+    const user = users[0];
+    const result = await bcrypt.checkPassword(password, user.password);
 
-    if (query) {
-      let payload = {
-        id: query[0].id,
+    if (result) {
+      const PAYLOAD = {
+        id: user.id,
       };
-      let token = jwt.sign(payload, config.jwtSecret);
+      const token = jwt.encode(PAYLOAD, config.jwtSecret);
       res.json({
-        token: token,
+        token,
+        id: user.id,
       });
+      console.log("nice");
     } else {
       res.sendStatus(401);
+      console.log("oops");
     }
   } else {
     res.sendStatus(401);
+    console.log("oops");
   }
 });
 
 app.post("/api/signup", async function (req, res) {
-  if (req.body.email && req.body.password) {
+  console.log(req.body);
+  if (req.body.username && req.body.password && req.body.email) {
+    const username = req.body.username;
     const email = req.body.email;
     const password = req.body.password;
 
-    const users = await knex("users").where({ email: email });
+    const users = await knex("accounts").where({ username: username });
     if (users.length > 0) {
       res.sendStatus(401);
     }
@@ -61,25 +69,10 @@ app.post("/api/signup", async function (req, res) {
       password: hash,
     };
 
-    let user = await knex("users")
+    let user = await knex("accounts")
       .insert(newUser)
       .returning("*")
       .catch((err) => console.log(err));
-
-    user = user[0];
-
-    if (user) {
-      const payload = {
-        id: user.id,
-      };
-      const token = jwt.encode(payload, config.jwtSecret);
-      res.json({
-        token,
-        id: user.id,
-      });
-    } else {
-      res.sendStatus(401);
-    }
   } else {
     res.sendStatus(401);
   }
