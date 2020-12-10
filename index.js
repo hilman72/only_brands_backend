@@ -12,6 +12,7 @@ const knex = require("knex")(configOptions);
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+app.use(cors());
 
 //Handle general request
 app.get("*", (req, res) => {
@@ -40,19 +41,15 @@ app.post("/api/login", async function (req, res) {
         token,
         id: user.id,
       });
-      console.log("nice");
     } else {
       res.sendStatus(401);
-      console.log("oops");
     }
   } else {
     res.sendStatus(401);
-    console.log("oops");
   }
 });
 
 app.post("/api/signup", async function (req, res) {
-  console.log(req.body);
   if (req.body.username && req.body.password && req.body.email) {
     const username = req.body.username;
     const email = req.body.email;
