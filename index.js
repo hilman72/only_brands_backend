@@ -20,6 +20,7 @@ app.get("*", (req, res) => {
 });
 
 app.post("/api/login", async function (req, res) {
+  console.log(req.body.username);
   if (req.body.username && req.body.password) {
     const username = req.body.username;
     const password = req.body.password;
