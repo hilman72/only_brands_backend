@@ -219,6 +219,34 @@ app.post("/api/verification/:username", async function (req, res) {
     });
 });
 
+app.post("/api/createCoupon", async function (req, res) {
+  const finished_date = req.body.finished_date;
+  const description = req.body.description;
+  const discount = req.body.discount;
+  const limit = req.body.limit;
+  const id = req.body.account_business_id;
+  if (finished_date && description && discount && limit && id) {
+    let take = await knex("accounts_businesses").where(
+      "account_id",
+      "=",
+      `${id}`
+    );
+
+    const realId = take[0].id;
+
+    await knex("business_coupons").insert({
+      finished_date: finished_date,
+      description: description,
+      discount: discount,
+      limit: limit,
+      account_business_id: realId,
+      used: false,
+    });
+  } else {
+    res.sendStatus(401);
+  }
+});
+
 //setting up port to listen to backend
 const port = 5000;
 app.listen(port);
