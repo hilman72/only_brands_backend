@@ -219,6 +219,7 @@ app.post("/api/verification/:username", async function (req, res) {
     });
 });
 
+
 app.post("/api/createCoupon", async function (req, res) {
   const finished_date = req.body.finished_date;
   const description = req.body.description;
@@ -246,6 +247,21 @@ app.post("/api/createCoupon", async function (req, res) {
     res.sendStatus(401);
   }
 });
+
+
+//setting up the data from profile editing details
+app.post("/edit", async (req, res) => {
+  console.log(req.body)
+  let userProfile = {
+    photo: req.body.photo,
+    description: req.body.name,
+  }
+
+  await knex("accounts_users")
+    .where("account_id", "=", req.body.id)
+    .update(userProfile)
+})
+
 
 //setting up port to listen to backend
 const port = 5000;
