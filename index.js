@@ -17,11 +17,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cors());
 
-//Handle general request
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname + "/LandingPage"));
-});
-
 app.post("/api/login", async function (req, res) {
   console.log(req.body.username);
   if (req.body.username && req.body.password) {
@@ -55,6 +50,7 @@ app.post("/api/login", async function (req, res) {
         token,
         id: user.id,
         identity: identity,
+        username: username,
       });
     } else {
       res.sendStatus(401);
@@ -271,6 +267,19 @@ app.post("/edit", async (req, res) => {
   await knex("accounts_users")
     .where("account_id", "=", req.body.id)
     .update(userProfile);
+});
+
+//get business coupon
+app.get("/api/getCoupon/:id", async (req, res) => {
+  const id = req.params.id;
+
+  knex
+    .select("*")
+    .from("business_coupons")
+    .where("account_business_id", "=", `${id}`)
+    .then((data) => {
+      res.send(data);
+    });
 });
 
 //setting up port to listen to backend
