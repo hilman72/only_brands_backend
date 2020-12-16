@@ -1,4 +1,5 @@
 exports.up = function (knex, Promise) {
+
     return knex.schema
         .createTable("accounts", (table) => {
             table.increments("id").primary();
@@ -99,16 +100,17 @@ exports.up = function (knex, Promise) {
         })
 
 
+
 };
 
 exports.down = function (knex, Promise) {
-    return knex.schema
-        .dropTable("users_referals")
-        .then(() => knex.schema.dropTable("referal_coupons"))
-        .then(() => knex.schema.dropTable("business_coupons"))
-        .then(() => knex.schema.dropTable("users_recommendations"))
-        .then(() => knex.schema.dropTable("accounts_businesses"))
-        .then(() => knex.schema.dropTable("liked_businesses"))
-        .then(() => knex.schema.dropTable("accounts_users"))
-        .then(() => knex.schema.dropTable("accounts"))
+  return knex.schema
+    .dropTable("users_referals")
+    .then(() => knex.schema.dropTable("referal_coupons"))
+    .then(() => knex.schema.dropTable("business_coupons"))
+    .then(() => knex.schema.dropTable("users_recommendations"))
+    .then(() => knex.schema.dropTable("accounts_businesses"))
+    .then(() => knex.schema.dropTable("liked_businesses"))
+    .then(() => knex.schema.dropTable("accounts_users"))
+    .then(() => knex.schema.dropTable("accounts"));
 };

@@ -23,6 +23,7 @@ app.post("/api/login", async function (req, res) {
   if (req.body.username && req.body.password) {
     const username = req.body.username;
     const password = req.body.password;
+    let identity = "";
 
     // Read from database to check if user exists
     const users = await knex("accounts").where({ username });
@@ -33,6 +34,14 @@ app.post("/api/login", async function (req, res) {
     const user = users[0];
     const result = await bcrypt.checkPassword(password, user.password);
 
+    if (user.user === true) {
+      identity = "user";
+    } else if (user.business === true) {
+      identity = "business";
+    } else if (user.admin === true) {
+      identity = "admin";
+    }
+
     if (result) {
       const PAYLOAD = {
         id: user.id,
@@ -41,6 +50,8 @@ app.post("/api/login", async function (req, res) {
       res.json({
         token,
         id: user.id,
+        identity: identity,
+        username: username,
       });
     } else {
       res.sendStatus(401);
@@ -210,15 +221,45 @@ app.post("/api/verification/:username", async function (req, res) {
   knex("accounts")
     .where("username", "=", `${username}`)
     .update({ checked: true })
-    .than(() => {
+    .then(() => {
       res.redirect(`${process.env.HOME}/LoginPage`);
     });
 });
 
+app.post("/api/createCoupon", async function (req, res) {
+  const finished_date = req.body.finished_date;
+  const description = req.body.description;
+  const discount = req.body.discount;
+  const limit = req.body.limit;
+  const id = req.body.account_business_id;
+  if (finished_date && description && discount && limit && id) {
+    let take = await knex("accounts_businesses").where(
+      "account_id",
+      "=",
+      `${id}`
+    );
+
+    const realId = take[0].id;
+
+    await knex("business_coupons")
+      .insert({
+        finished_date: finished_date,
+        description: description,
+        discount: discount,
+        limit: limit,
+        account_business_id: realId,
+        used: false,
+      })
+      .then(() => {})
+      .catch((err) => console.log(err));
+  } else {
+    res.sendStatus(401);
+  }
+});
 
 //setting up data to the backend table account_users
 app.post("/edit", async (req, res) => {
-  console.log(req.body)
+  console.log(req.body);
   let userProfile = {
     photo: req.body.photo,
     description: req.body.name
@@ -242,6 +283,7 @@ app.get("/photo/:id", async (req, res) => {
     .where("account_id", "=", req.params.id)
   res.send(data);
 })
+
 
 
 //get search post from the frontend 
