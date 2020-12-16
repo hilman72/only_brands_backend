@@ -32,6 +32,7 @@ exports.up = function (knex, Promise) {
         .then(() => {
             return knex.schema.createTable("accounts_businesses", (businesses) => {
                 businesses.increments("id").primary();
+                businesses.specificType('fulltext', 'tsvector');
                 businesses.string("photo");
                 businesses.string("address");
                 businesses.string("description");

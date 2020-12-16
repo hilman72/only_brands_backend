@@ -17,10 +17,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cors());
 
-//Handle general request
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname + "/LandingPage"));
-});
 
 app.post("/api/login", async function (req, res) {
   console.log(req.body.username);
@@ -220,18 +216,47 @@ app.post("/api/verification/:username", async function (req, res) {
 });
 
 
-//setting up the data from profile editing details
+//setting up data to the backend table account_users
 app.post("/edit", async (req, res) => {
   console.log(req.body)
   let userProfile = {
     photo: req.body.photo,
-    description: req.body.name,
+    description: req.body.name
   }
-
-  await knex("accounts_users")
-    .where("account_id", "=", req.body.id)
-    .update(userProfile)
+  try {
+    await knex("accounts_users")
+      .where("account_id", "=", req.body.id)
+      .update(userProfile)
+    //let user_data = await knex("accounts_users")
+    //  .select()
+    //  .where("account_id", "=", req.body.id)
+    //console.log(user_data)
+    //res.send(user_data[0])
+  } catch (error) {
+    res.send("There is some error, maybe not updated")
+  }
 })
+
+app.get("/photo/:id", async (req, res) => {
+  let data = await knex("accounts_users").select("photo")
+    .where("account_id", "=", req.params.id)
+  res.send(data);
+})
+
+
+//get search post from the frontend 
+app.get("/api/search/:ggoptions/:filter", async (req, res) => {
+  console.log("many many")
+  if (req.params.ggoptions === "Brands") {
+    let data = await knex("accounts_businesses").select()
+      .where("description", "Ilike", `%${req.params.filter}%`)
+      .orWhere("category", "Ilike", `%${req.params.filter}%`)
+    res.send(data);
+  }
+})
+
+
+
 
 //setting up port to listen to backend
 const port = 5000;
