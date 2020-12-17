@@ -90,6 +90,8 @@ app.post("/api/signup/user", async function (req, res) {
       .insert({
         account_id: user[0].id,
         user_name: username,
+        my_coupon: "[]",
+        point: "[]",
       })
       .catch((err) => console.log(err));
 
@@ -168,6 +170,9 @@ app.post("/api/signup/business", async function (req, res) {
       .insert({
         account_id: user[0].id,
         business_name: username,
+        provided_coupon: "[]",
+        point: "[]",
+        point_detail: "[]",
       })
       .catch((err) => console.log(err));
 
@@ -252,8 +257,9 @@ app.post("/api/createCoupon", async function (req, res) {
         limit: limit,
         account_business_id: realId,
         used: false,
+        claim_number: 0,
       })
-      .then(() => { })
+      .then(() => {})
       .catch((err) => console.log(err));
   } else {
     res.sendStatus(401);
@@ -290,8 +296,7 @@ app.post("/edit", async (req, res) => {
   console.log(req.body);
   let userProfile = {
     photo: req.body.photo,
-
-  }
+  };
 
   try {
     await knex("accounts_users")
@@ -301,7 +306,7 @@ app.post("/edit", async (req, res) => {
     //  .select()
     //  .where("account_id", "=", req.body.id)
     //console.log(user_data)
-    res.send(user_data[0])
+    res.send(user_data[0]);
   } catch (error) {
     res.send("There is some error, maybe not updated");
   }

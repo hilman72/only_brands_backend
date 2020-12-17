@@ -70,7 +70,8 @@ exports.up = function (knex, Promise) {
         bus_coup.string("finished_date");
         bus_coup.boolean("used");
         bus_coup.string("discount");
-        bus_coup.string("limit");
+        bus_coup.integer("limit");
+        bus_coup.integer("claim_number");
         bus_coup.string("business_name");
         //one to many relationship with accounts
         bus_coup.integer("account_id").unsigned();
