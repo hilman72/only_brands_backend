@@ -216,14 +216,14 @@ app.post("/api/signup/business", async function (req, res) {
   }
 });
 
-app.post("/api/verification/:username", async function (req, res) {
+app.get("/api/verification/:username", async function (req, res) {
   let username = req.params.username;
   console.log("verified");
   knex("accounts")
     .where("username", "=", `${username}`)
     .update({ checked: true })
     .then(() => {
-      res.redirect(`${process.env.HOME}/LoginPage`);
+      res.redirect("http://localhost:3000/LoginPage");
     });
 });
 
@@ -260,12 +260,29 @@ app.post("/api/createCoupon", async function (req, res) {
   }
 });
 
-app.get("/api/getCoupon/:id", async (req, res) => {
-  let id = req.params.id;
+//getBusinessDetail
+
+app.get("/api/getBusinessDetail/:name", async (req, res) => {
+  let name = req.params.name;
+  await knex("accounts_businesses")
+    .select()
+    .where("business_name", "=", name)
+    .then((data) => res.send(data));
+});
+
+//getBusinessCoupon
+app.get("/api/getCoupon/:name", async (req, res) => {
+  let name = req.params.name;
   await knex("business_coupons")
     .select()
-    .where("account_business_id", "=", id)
+    .where("business_name", "=", name)
     .then((data) => res.send(data));
+});
+
+app.post("/api/claimCoupon/:name", async (req, res) => {
+  let name = req.params.name;
+  let id = req.body.id;
+  await knew();
 });
 
 //setting up data to the backend table account_users

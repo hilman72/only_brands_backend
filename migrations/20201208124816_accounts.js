@@ -16,6 +16,8 @@ exports.up = function (knex, Promise) {
         details.string("photo");
         details.string("description");
         details.string("user_name");
+        details.string("my_coupon");
+        details.string("point");
         //to establish one-to-one relationship with accounts
         details.integer("account_id").unsigned().unique();
         details.foreign("account_id").references("accounts.id");
@@ -37,6 +39,9 @@ exports.up = function (knex, Promise) {
         businesses.string("business_name");
         businesses.string("photo");
         businesses.string("address");
+        businesses.string("provided_coupon");
+        businesses.string("point");
+        businesses.string("point_detail");
         businesses.string("description");
         businesses.string("contact");
         businesses.string("category");
@@ -86,7 +91,6 @@ exports.up = function (knex, Promise) {
         ref_coup.string("business_name");
         ref_coup.boolean("finished");
         ref_coup.string("discount");
-        ref_coup.string("point");
         //one to one relationship with business coupons
         ref_coup.integer("business_coupon_id").unsigned().unique();
         ref_coup
