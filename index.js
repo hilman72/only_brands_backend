@@ -18,6 +18,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cors());
 
+let today = new Date().toISOString().slice(0, 10);
+
 app.post("/api/login", async function (req, res) {
   console.log(req.body.username);
   if (req.body.username && req.body.password) {
@@ -260,7 +262,7 @@ app.post("/api/createCoupon", async function (req, res) {
         used: false,
         claim_number: 0,
       })
-      .then(() => { })
+      .then(() => {})
       .catch((err) => console.log(err));
   } else {
     res.sendStatus(401);
@@ -318,8 +320,8 @@ app.post("/api/claimCoupon/:name", async (req, res) => {
 
   //max limit
   if (coupon_claim === coupon_limit) {
+    console.log("error3");
     res.send("error");
-    return;
   }
 
   //set filter
@@ -345,6 +347,9 @@ app.post("/api/claimCoupon/:name", async (req, res) => {
     description: description,
     date: date,
     business_name: b_name,
+    used: false,
+    expired: false,
+    creation_date: today,
   };
 
   let newCoupon2 = {
@@ -354,6 +359,9 @@ app.post("/api/claimCoupon/:name", async (req, res) => {
     description: description,
     date: date,
     business_name: b_name,
+    used: false,
+    expired: false,
+    creation_date: today,
   };
 
   if (filter === undefined) {
@@ -374,8 +382,10 @@ app.post("/api/claimCoupon/:name", async (req, res) => {
     await knex("business_coupons")
       .where("id", "=", id)
       .update({ claim_number: number + 1 });
+    console.log("ok");
     res.send("ok");
   } else {
+    console.log("error2");
     res.send("error");
   }
 });
@@ -423,25 +433,25 @@ app.get("/api/search/:ggoptions/:filter", async (req, res) => {
 //write some description into database
 app.post("/editdetails", async (req, res) => {
   let datadetails = {
-    description: req.body.description
-  }
+    description: req.body.description,
+  };
   try {
     await knex("accounts_users")
       .where("account_id", "=", req.body.id)
-      .update(datadetails)
-    res.send("this is done in backend")
+      .update(datadetails);
+    res.send("this is done in backend");
   } catch (error) {
-    res.send("There is some error, maybe not updated")
+    res.send("There is some error, maybe not updated");
   }
-})
+});
 
 //get the data from backend description from account_users
 app.get("/textdescription/:id", async (req, res) => {
-  let data = await knex("accounts_users").select("description")
-    .where("account_id", "=", req.params.id)
+  let data = await knex("accounts_users")
+    .select("description")
+    .where("account_id", "=", req.params.id);
   res.send(data);
-})
-
+});
 
 //setting up port to listen to backend
 const port = 5000;
