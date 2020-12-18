@@ -9,6 +9,7 @@ const config = require("./config.js");
 const app = express();
 const bcrypt = require("./bcrypt");
 const nodemailer = require("nodemailer");
+const crypto = require("crypto");
 
 const configOptions = require("./knexfile").development;
 const knex = require("knex")(configOptions);
@@ -90,8 +91,8 @@ app.post("/api/signup/user", async function (req, res) {
       .insert({
         account_id: user[0].id,
         user_name: username,
-        my_coupon: "[]",
-        point: "[]",
+        my_coupon: JSON.stringify([]),
+        point: JSON.stringify([]),
       })
       .catch((err) => console.log(err));
 
@@ -170,9 +171,9 @@ app.post("/api/signup/business", async function (req, res) {
       .insert({
         account_id: user[0].id,
         business_name: username,
-        provided_coupon: "[]",
-        point: "[]",
-        point_detail: "[]",
+        provided_coupon: JSON.stringify([]),
+        point: JSON.stringify([]),
+        point_detail: JSON.stringify([]),
       })
       .catch((err) => console.log(err));
 
@@ -285,10 +286,98 @@ app.get("/api/getCoupon/:name", async (req, res) => {
     .then((data) => res.send(data));
 });
 
+//when claim coupon
+
 app.post("/api/claimCoupon/:name", async (req, res) => {
   let name = req.params.name;
+  let business_id = req.body.business_id;
+  let date = req.body.date;
+  let description = req.body.description;
+  let title = req.body.title;
+  let number = req.body.number;
   let id = req.body.id;
-  await knew();
+  let b_name = req.body.name;
+
+  let uuid = crypto.randomBytes(4).toString("hex");
+
+  const user = await knex("accounts_users")
+    .select()
+    .where("user_name", "=", name);
+  let coupon = JSON.parse(user[0].my_coupon);
+
+  const business = await knex("accounts_businesses")
+    .select()
+    .where("id", "=", business_id);
+  let p_coupon = JSON.parse(business[0].provided_coupon);
+
+  const each_coupon = await knex("business_coupons")
+    .select()
+    .where("id", "=", id);
+  let coupon_claim = each_coupon.claim_number;
+  let coupon_limit = each_coupon.limit;
+
+  //max limit
+  if (coupon_claim === coupon_limit) {
+    res.send("error");
+    return;
+  }
+
+  //set filter
+
+  const filterFilter = () => {
+    if (coupon.length === 0) {
+      return [];
+    } else if (coupon.length > 0) {
+      coupon.filter((rowFilter) => {
+        return rowFilter.business_name === b_name;
+      });
+    }
+  };
+
+  let filter = filterFilter();
+  // console.log(filter);
+  // console.log(coupon);
+
+  let newCoupon = {
+    coupon_id: uuid,
+    linked_id: id,
+    title: title,
+    description: description,
+    date: date,
+    business_name: b_name,
+  };
+
+  let newCoupon2 = {
+    coupon_id: uuid,
+    linked_id: id,
+    title: title,
+    description: description,
+    date: date,
+    business_name: b_name,
+  };
+
+  if (filter === undefined) {
+    console.log("error1");
+    res.send("error");
+  } else if (filter.length <= 0 || coupon.length <= 0) {
+    // console.log(
+    //   JSON.stringify([...coupon, newCoupon]),
+    //   JSON.stringify([...p_coupon, newCoupon2])
+    // );
+    console.log(name);
+    await knex("accounts_users")
+      .where("user_name", "=", name)
+      .update({ my_coupon: JSON.stringify([...coupon, newCoupon]) });
+    await knex("accounts_businesses")
+      .where("id", "=", business_id)
+      .update({ provided_coupon: JSON.stringify([...p_coupon, newCoupon2]) });
+    await knex("business_coupons")
+      .where("id", "=", id)
+      .update({ claim_number: number + 1 });
+    res.send("ok");
+  } else {
+    res.send("error");
+  }
 });
 
 //setting up data to the backend table account_users
