@@ -259,7 +259,7 @@ app.post("/api/createCoupon", async function (req, res) {
         used: false,
         claim_number: 0,
       })
-      .then(() => {})
+      .then(() => { })
       .catch((err) => console.log(err));
   } else {
     res.sendStatus(401);
@@ -330,6 +330,29 @@ app.get("/api/search/:ggoptions/:filter", async (req, res) => {
     res.send(data);
   }
 });
+
+//write some description into database
+app.post("/editdetails", async (req, res) => {
+  let datadetails = {
+    description: req.body.description
+  }
+  try {
+    await knex("accounts_users")
+      .where("account_id", "=", req.body.id)
+      .update(datadetails)
+    res.send("this is done in backend")
+  } catch (error) {
+    res.send("There is some error, maybe not updated")
+  }
+})
+
+//get the data from backend description from account_users
+app.get("/textdescription/:id", async (req, res) => {
+  let data = await knex("accounts_users").select("description")
+    .where("account_id", "=", req.params.id)
+  res.send(data);
+})
+
 
 //setting up port to listen to backend
 const port = 5000;
