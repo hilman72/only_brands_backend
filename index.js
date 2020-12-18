@@ -390,9 +390,35 @@ app.post("/api/claimCoupon/:name", async (req, res) => {
   }
 });
 
+//get for my_coupon page (user)
+app.get("/api/myCoupon/user/:name", (req, res) => {
+  const name = req.params.name;
+  knex("accounts_users")
+    .select()
+    .where("user_name", "=", name)
+    .then((data) => {
+      // console.log(JSON.parse(data[0].my_coupon));
+      let x = JSON.parse(data[0].my_coupon);
+      res.send(x);
+    });
+});
+
+//get for my_coupon page (business)
+app.get("/api/myCoupon/business/:name", (req, res) => {
+  const name = req.params.name;
+  knex("accounts_businesses")
+    .select()
+    .where("business_name", "=", name)
+    .then((data) => {
+      // console.log(JSON.parse(data[0].provided_coupon));
+      let x = JSON.parse(data[0].provided_coupon);
+      res.send(x);
+    });
+});
+
 //setting up data to the backend table account_users
 app.post("/edit", async (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
   let userProfile = {
     photo: req.body.photo,
   };
