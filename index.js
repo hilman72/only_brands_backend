@@ -330,9 +330,10 @@ app.post("/api/claimCoupon/:name", async (req, res) => {
     if (coupon.length === 0) {
       return [];
     } else if (coupon.length > 0) {
-      coupon.filter((rowFilter) => {
+      let x = coupon.filter((rowFilter) => {
         return rowFilter.business_name === b_name;
       });
+      return x;
     }
   };
 
