@@ -483,7 +483,7 @@ app.get("/textdescription/:id", async (req, res) => {
 
 app.post("/api/followers", async (req, res) => {
   // console.log(req.body.username)
-  console.log(req.body.ownUser)
+  // console.log(req.body.ownUser)
   
 
   let id = req.body.ownUser
@@ -492,7 +492,7 @@ app.post("/api/followers", async (req, res) => {
   .select()
   .where("id", "=", id)
 
-  console.log(follower)
+  // console.log(follower)
 
   let followers = JSON.parse(data[0].followed_users);
 
@@ -504,39 +504,116 @@ app.post("/api/followers", async (req, res) => {
     if (followers.length === 0) {
       return [];
     } else if (followers.length > 0) {
-      let x =followers.filter((rowFilter) => {
-
-        console.log(rowFilter)
-       rowFilter === follower
+      let x =followers.filter(rowFilter => {
+       return rowFilter == follower
       });
+      console.log(x)
       return x;
     }
   }; 
 
   const filter1 = filterFilter2();
-  // console.log(filter1)
+  console.log(filter1)
 
 
   if (filter1 === undefined){
     console.log("error1");
     res.send("error");
-  } else if (filter1.length <= 0){
-    console.log('works')
     
-    console.log(follower)
-    console.log(id)
+  } else if (filter1.length > 0){
+    res.send("You already follow this user")
+    console.log("Already followed")
+  }
+  else if (filter1.length <= 0){
+
+    console.log(filter1.length)
+    
     knex("accounts_users")
     .where("account_id", "=", id) 
     .update({followed_users: JSON.stringify([...followers, follower])})
     .then((data) => {
       console.log(data)
     })
-
     console.log("finished")
     return
     
   }
 
+})
+
+//Count followers 
+
+app.get("/api/followersAdd/:id", async (req, res) => {
+  
+  let id = req.params.id
+  console.log(id)
+
+  await knex("accounts_users")
+  .select("followed_users")
+  .where("account_id", "=", id)
+  .then((data) => {
+    let length = JSON.parse(data[0].followed_users)
+    let aLength = length.length
+
+    let num = String(aLength)
+
+    console.log(num)
+    res.send(num)
+  })
+
+  console.log("done")
+  return
+
+})
+
+//Handle unfollow 
+
+app.post('/api/unfollow', async (req, res) => {
+
+  let id = req.body.ownUser
+  let follower = req.body.username
+  let data = await knex("accounts_users")
+  .select()
+  .where("id", "=", id)
+
+  console.log(follower)
+
+  let followers = JSON.parse(data[0].followed_users);
+
+  console.log(followers)
+
+  const filterFilter2 = () => {
+    if (followers.length === 0) {
+      return [];
+    } else if (followers.length > 0) {
+      let x =followers.filter(rowFilter => {
+       return rowFilter == follower
+      });
+      console.log(x)
+      return x;
+    }
+  }; 
+
+  const filter1 = filterFilter2();
+  console.log(filter1)
+
+  if (filter1 === undefined){
+    console.log("error1");
+    res.send("error");
+    
+  } else if (filter1.length > 0){
+    res.send("You already follow this user")
+    console.log("Already followed")
+
+     
+    knex("accounts_users")
+    .where("account_id", "=", id) 
+    .del({followed_users: JSON.stringify([follower])})
+    .then((data) => {
+      console.log("deleted")
+      console.log(data)
+    })
+  }
 })
 
 //setting up port to listen to backend
