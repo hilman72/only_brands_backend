@@ -262,7 +262,7 @@ app.post("/api/createCoupon", async function (req, res) {
         used: false,
         claim_number: 0,
       })
-      .then(() => {})
+      .then(() => { })
       .catch((err) => console.log(err));
   } else {
     res.sendStatus(401);
@@ -501,7 +501,29 @@ app.get("/api/search/:ggoptions/:filter", async (req, res) => {
       .select()
       .where("description", "Ilike", `%${req.params.filter}%`)
       .orWhere("category", "Ilike", `%${req.params.filter}%`);
+    console.log("you are checking Brands")
     res.send(data);
+    return
+
+  } else if (req.params.ggoptions === "Coupons") {
+    let data2 = await knex("business_coupons")
+      .select()
+      .where("description", "Ilike", `%${req.params.filter}%`)
+      .orWhere("business_name", "Ilike", `%${req.params.filter}%`);
+    res.send(data2);
+    console.log("you are checking coupons")
+
+  } else if (req.params.ggoptions === "Users") {
+    try {
+      let data3 = await knex("accounts_users")
+        .select()
+        .where("description", "Ilike", `%${req.params.filter}%`)
+        .orWhere("user_name", "Ilike", `%${req.params.filter}%`)
+      res.send(data3);
+      console.log("you are checking Users")
+    } catch (err) {
+      console.log(err)
+    }
   }
 });
 
@@ -647,6 +669,25 @@ app.post("/api/unfollow", async (req, res) => {
   }
 });
 
+//post review data to database
+app.post("/api/reviewdetails", async (req, res) => {
+  let reviewdata = {
+    userid: req.body.userid,
+    reviewdetail: req.body.reviewdetail,
+    business: req.body.businessid
+  }
+  let reviewinsert = {
+    review: reviewdata
+  }
+  try {
+    await knex("accounts_businesses")
+      .where("account_id", "=", req.body.id)
+      .update(reviewinsert);
+    console.log("thats done");
+  } catch (error) {
+    res.send("There is some error, maybe not updated");
+  }
+})
 //setting up port to listen to backend
 const port = 5000;
 app.listen(port);
