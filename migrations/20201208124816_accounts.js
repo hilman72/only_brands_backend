@@ -17,6 +17,8 @@ exports.up = function (knex, Promise) {
         details.string("description");
         details.string("user_name");
         details.string("my_coupon", 65535);
+        details.string("your_ref_coupon", 65535);
+        details.string("received_ref", 65535);
         details.string("point");
         details.string("followed_users")
         details.string("followed_brands")
@@ -43,6 +45,7 @@ exports.up = function (knex, Promise) {
         businesses.string("address");
         businesses.string("review", 65535);
         businesses.string("provided_coupon", 65535);
+        businesses.string("ref_coupon", 65535);
         businesses.string("point");
         businesses.string("point_detail");
         businesses.string("description");

@@ -82,7 +82,7 @@ app.post("/api/signup/user", async function (req, res) {
       checked: false,
       user: true,
       business: false,
-      admin: false
+      admin: false,
     };
 
     let user = await knex("accounts")
@@ -96,8 +96,12 @@ app.post("/api/signup/user", async function (req, res) {
         user_name: username,
         my_coupon: JSON.stringify([]),
         point: JSON.stringify([]),
+        your_ref_coupon: JSON.stringify([]),
+        received_ref: JSON.stringify([]),
         followed_users: JSON.stringify([]),
+
         followed_brands: JSON.stringify([])
+
       })
       .catch((err) => console.log(err));
 
@@ -179,6 +183,7 @@ app.post("/api/signup/business", async function (req, res) {
         provided_coupon: JSON.stringify([]),
         point: JSON.stringify([]),
         point_detail: JSON.stringify([]),
+        ref_coupon: JSON.stringify([]),
       })
       .catch((err) => console.log(err));
 
@@ -265,7 +270,7 @@ app.post("/api/createCoupon", async function (req, res) {
         used: false,
         claim_number: 0,
       })
-      .then(() => { })
+      .then(() => {})
       .catch((err) => console.log(err));
   } else {
     res.sendStatus(401);
@@ -352,8 +357,6 @@ app.post("/api/claimCoupon/:name", async (req, res) => {
     date: date,
     user_name: name,
     business_name: b_name,
-    used: false,
-    expired: false,
     creation_date: today,
   };
 
@@ -394,6 +397,34 @@ app.post("/api/claimCoupon/:name", async (req, res) => {
     console.log("error2");
     res.send("error");
   }
+});
+
+//make a ref coupon
+app.post("/api/makeRef/", async (req, res) => {
+  const name = req.body.u_name;
+  const b_name = req.body.b_name;
+
+  await knex("referal_coupons")
+    .insert({
+      business_name: b_name,
+      send_by: name,
+    })
+    .then(() => {
+      console.log("ok");
+    })
+    .catch((err) => console.log(err));
+});
+
+//display your ref coupon
+app.post("/api/yourRef/", (req, res) => {
+  let name = req.body.name;
+
+  knex("referal_coupons")
+    .select()
+    .where("send_by", "=", name)
+    .then((data) => {
+      res.send(data);
+    });
 });
 
 //get for my_coupon page (user)
@@ -504,28 +535,26 @@ app.get("/api/search/:ggoptions/:filter", async (req, res) => {
       .select()
       .where("description", "Ilike", `%${req.params.filter}%`)
       .orWhere("category", "Ilike", `%${req.params.filter}%`);
-    console.log("you are checking Brands")
+    console.log("you are checking Brands");
     res.send(data);
-    return
-
+    return;
   } else if (req.params.ggoptions === "Coupons") {
     let data2 = await knex("business_coupons")
       .select()
       .where("description", "Ilike", `%${req.params.filter}%`)
       .orWhere("business_name", "Ilike", `%${req.params.filter}%`);
     res.send(data2);
-    console.log("you are checking coupons")
-
+    console.log("you are checking coupons");
   } else if (req.params.ggoptions === "Users") {
     try {
       let data3 = await knex("accounts_users")
         .select()
         .where("description", "Ilike", `%${req.params.filter}%`)
-        .orWhere("user_name", "Ilike", `%${req.params.filter}%`)
+        .orWhere("user_name", "Ilike", `%${req.params.filter}%`);
       res.send(data3);
-      console.log("you are checking Users")
+      console.log("you are checking Users");
     } catch (err) {
-      console.log(err)
+      console.log(err);
     }
   }
 });
@@ -711,11 +740,11 @@ app.post("/api/reviewdetails", async (req, res) => {
   let reviewdata = {
     userid: req.body.userid,
     reviewdetail: req.body.reviewdetail,
-    business: req.body.businessid
-  }
+    business: req.body.businessid,
+  };
   let reviewinsert = {
-    review: reviewdata
-  }
+    review: reviewdata,
+  };
   try {
     await knex("accounts_businesses")
       .where("account_id", "=", req.body.id)
@@ -724,6 +753,8 @@ app.post("/api/reviewdetails", async (req, res) => {
   } catch (error) {
     res.send("There is some error, maybe not updated");
   }
+
+
 })
 
 app.post("/api/businessphotoedit", async (req, res) => {
