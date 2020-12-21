@@ -18,8 +18,8 @@ exports.up = function (knex, Promise) {
         details.string("user_name");
         details.string("my_coupon");
         details.string("point");
-        details.string("followed_users");
-        details.string("followed_brands");
+        details.string("followed_users")
+        details.string("followed_brands")
         //to establish one-to-one relationship with accounts
         details.integer("account_id").unsigned().unique();
         details.foreign("account_id").references("accounts.id");
