@@ -81,7 +81,7 @@ app.post("/api/signup/user", async function (req, res) {
       checked: false,
       user: true,
       business: false,
-      admin: false,
+      admin: false
     };
 
     let user = await knex("accounts")
@@ -95,6 +95,8 @@ app.post("/api/signup/user", async function (req, res) {
         user_name: username,
         my_coupon: JSON.stringify([]),
         point: JSON.stringify([]),
+        followed_users: JSON.stringify([]),
+      followed_brands: JSON.stringify([])
       })
       .catch((err) => console.log(err));
 
@@ -330,9 +332,10 @@ app.post("/api/claimCoupon/:name", async (req, res) => {
     if (coupon.length === 0) {
       return [];
     } else if (coupon.length > 0) {
-      coupon.filter((rowFilter) => {
+      let x = coupon.filter((rowFilter) => {
         return rowFilter.business_name === b_name;
       });
+      return x;
     }
   };
 
@@ -346,6 +349,7 @@ app.post("/api/claimCoupon/:name", async (req, res) => {
     title: title,
     description: description,
     date: date,
+    user_name: name,
     business_name: b_name,
     used: false,
     expired: false,
@@ -358,6 +362,7 @@ app.post("/api/claimCoupon/:name", async (req, res) => {
     title: title,
     description: description,
     date: date,
+    user_name: name,
     business_name: b_name,
     used: false,
     expired: false,
@@ -390,9 +395,81 @@ app.post("/api/claimCoupon/:name", async (req, res) => {
   }
 });
 
+//get for my_coupon page (user)
+app.get("/api/myCoupon/user/:name", (req, res) => {
+  const name = req.params.name;
+  knex("accounts_users")
+    .select()
+    .where("user_name", "=", name)
+    .then((data) => {
+      // console.log(JSON.parse(data[0].my_coupon));
+      let x = JSON.parse(data[0].my_coupon);
+      res.send(x);
+    });
+});
+
+//get for my_coupon page (business)
+app.get("/api/myCoupon/business/:name", (req, res) => {
+  const name = req.params.name;
+  knex("accounts_businesses")
+    .select()
+    .where("business_name", "=", name)
+    .then((data) => {
+      // console.log(JSON.parse(data[0].provided_coupon));
+      let x = JSON.parse(data[0].provided_coupon);
+      res.send(x);
+    });
+});
+
+//confirm using the coupon
+app.post("/api/confirmCoupon/", async (req, res) => {
+  const name = req.body.u_name;
+  const b_name = req.body.b_name;
+  const coupon_id = req.body.id;
+
+  let user = await knex("accounts_users")
+    .select("my_coupon")
+    .where("user_name", "=", name)
+    .then((data) => {
+      return JSON.parse(data[0].my_coupon);
+    });
+
+  let user_coupon = await user.filter((rowFilter) => {
+    return rowFilter.coupon_id === coupon_id;
+  })[0];
+
+  let user_index = await user.indexOf(user_coupon);
+
+  let business = await knex("accounts_businesses")
+    .select("provided_coupon")
+    .where("business_name", "=", b_name)
+    .then((data) => {
+      return JSON.parse(data[0].provided_coupon);
+    });
+
+  let business_coupon = await business.filter((rowFilter) => {
+    return rowFilter.coupon_id === coupon_id;
+  })[0];
+
+  let business_index = await business.indexOf(business_coupon);
+
+  user_coupon.used = true;
+  business_coupon.used = true;
+
+  user.splice(user_index, 1, user_coupon);
+  business.splice(business_index, 1, business_coupon);
+
+  await knex("accounts_users")
+    .where("user_name", "=", name)
+    .update({ my_coupon: JSON.stringify(user) });
+  await knex("accounts_businesses")
+    .where("business_name", "=", b_name)
+    .update({ provided_coupon: JSON.stringify(business) });
+});
+
 //setting up data to the backend table account_users
 app.post("/edit", async (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
   let userProfile = {
     photo: req.body.photo,
   };
@@ -458,137 +535,119 @@ app.get("/textdescription/:id", async (req, res) => {
 app.post("/api/followers", async (req, res) => {
   // console.log(req.body.username)
   // console.log(req.body.ownUser)
-  
 
-  let id = req.body.ownUser
-  let follower = req.body.username
-  let data = await knex("accounts_users")
-  .select()
-  .where("id", "=", id)
+  let id = req.body.ownUser;
+  let follower = req.body.username;
+  let data = await knex("accounts_users").select().where("id", "=", id);
 
   // console.log(follower)
 
   let followers = JSON.parse(data[0].followed_users);
 
   // console.log(followers)
- 
-
 
   const filterFilter2 = () => {
     if (followers.length === 0) {
       return [];
     } else if (followers.length > 0) {
-      let x =followers.filter(rowFilter => {
-       return rowFilter == follower
+      let x = followers.filter((rowFilter) => {
+        return rowFilter == follower;
       });
-      console.log(x)
+      console.log(x);
       return x;
     }
-  }; 
+  };
 
   const filter1 = filterFilter2();
-  console.log(filter1)
+  console.log(filter1);
 
-
-  if (filter1 === undefined){
+  if (filter1 === undefined) {
     console.log("error1");
     res.send("error");
-    
-  } else if (filter1.length > 0){
-    res.send("You already follow this user")
-    console.log("Already followed")
-  }
-  else if (filter1.length <= 0){
+  } else if (filter1.length > 0) {
+    res.send("You already follow this user");
+    console.log("Already followed");
+  } else if (filter1.length <= 0) {
+    console.log(filter1.length);
 
-    console.log(filter1.length)
-    
     knex("accounts_users")
-    .where("account_id", "=", id) 
-    .update({followed_users: JSON.stringify([...followers, follower])})
-    .then((data) => {
-      console.log(data)
-    })
-    console.log("finished")
-    return
-    
+      .where("account_id", "=", id)
+      .update({ followed_users: JSON.stringify([...followers, follower]) })
+      .then((data) => {
+        console.log(data);
+      });
+    console.log("finished");
+    return;
   }
+});
 
-})
-
-//Count followers 
+//Count followers
 
 app.get("/api/followersAdd/:id", async (req, res) => {
-  
-  let id = req.params.id
-  console.log(id)
+  let id = req.params.id;
+  console.log(id);
 
   await knex("accounts_users")
-  .select("followed_users")
-  .where("account_id", "=", id)
-  .then((data) => {
-    let length = JSON.parse(data[0].followed_users)
-    let aLength = length.length
+    .select("followed_users")
+    .where("account_id", "=", id)
+    .then((data) => {
+      let length = JSON.parse(data[0].followed_users);
+      let aLength = length.length;
 
-    let num = String(aLength)
+      let num = String(aLength);
 
-    console.log(num)
-    res.send(num)
-  })
+      console.log(num);
+      res.send(num);
+    });
 
-  console.log("done")
-  return
+  console.log("done");
+  return;
+});
 
-})
+//Handle unfollow
 
-//Handle unfollow 
+app.post("/api/unfollow", async (req, res) => {
+  let id = req.body.ownUser;
+  let follower = req.body.username;
+  let data = await knex("accounts_users").select().where("id", "=", id);
 
-app.post('/api/unfollow', async (req, res) => {
-
-  let id = req.body.ownUser
-  let follower = req.body.username
-  let data = await knex("accounts_users")
-  .select()
-  .where("id", "=", id)
-
-  console.log(follower)
+  console.log(follower);
 
   let followers = JSON.parse(data[0].followed_users);
 
-  console.log(followers)
+  console.log(followers);
 
   const filterFilter2 = () => {
     if (followers.length === 0) {
       return [];
     } else if (followers.length > 0) {
-      let x =followers.filter(rowFilter => {
-       return rowFilter == follower
+      let x = followers.filter((rowFilter) => {
+        return rowFilter == follower;
       });
-      console.log(x)
+      console.log(x);
       return x;
     }
-  }; 
+  };
 
   const filter1 = filterFilter2();
-  console.log(filter1)
+  console.log(filter1);
 
-  if (filter1 === undefined){
+  if (filter1 === undefined) {
     console.log("error1");
     res.send("error");
-    
-  } else if (filter1.length > 0){
-    res.send("You already follow this user")
-    console.log("Already followed")
+  } else if (filter1.length > 0) {
+    res.send("You already follow this user");
+    console.log("Already followed");
 
-     
     knex("accounts_users")
-    .where("account_id", "=", id) 
-    .del({followed_users: JSON.stringify([follower])})
-    .then((data) => {
-      console.log("deleted")
-      console.log(data)
-    })
+      .where("account_id", "=", id)
+      .del({ followed_users: JSON.stringify([follower]) })
+      .then((data) => {
+        console.log("deleted");
+        console.log(data);
+      });
   }
-})
+});
 
 //setting up port to listen to backend
 const port = 5000;
