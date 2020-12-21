@@ -10,6 +10,7 @@ const app = express();
 const bcrypt = require("./bcrypt");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
+const { resolveSoa } = require("dns");
 
 const configOptions = require("./knexfile").development;
 const knex = require("knex")(configOptions);
@@ -595,9 +596,9 @@ app.post("/api/followers", async (req, res) => {
       .where("account_id", "=", id)
       .update({ followed_users: JSON.stringify([...followers, follower]) })
       .then((data) => {
-        // console.log(data);
+        console.log(data);
       });
-    // console.log("finished");
+    console.log("finished");
     return;
   }
 });
@@ -659,8 +660,8 @@ app.post("/api/unfollow", async (req, res) => {
       .where("account_id", "=", id)
       .update({followed_users: JSON.stringify(followers)})
       .then((data) => {
-        console.log("deleted");
-        console.log(data);
+        // console.log("deleted");
+        // console.log(data);
       });
   }
 });
@@ -669,9 +670,7 @@ app.post("/api/unfollow", async (req, res) => {
 
 app.get('/api/countFollowers/:user', (req, res) => {
   console.log(req.params.user)
-
   let user = req.params.user;
-
 
   knex("accounts_users")
   .count("user_name")
@@ -682,6 +681,27 @@ app.get('/api/countFollowers/:user', (req, res) => {
     res.send(count)
    
     console.log(count)
+  })
+
+})
+
+//Check if followed
+
+app.get('/api/checkFollowed/:username/:id', (req, res) => {
+  let username = req.params.username
+  let id = req.params.id 
+
+  knex("accounts_users")
+  .select('*')
+  .where("account_id", "=", id)
+  .andWhere("followed_users", "ilike", `%"${username}"%`)
+  .then((data) => {
+
+    if (data.length > 0){
+        res.send(true)
+    } else {
+        res.send(false)
+    }
   })
 
 })
