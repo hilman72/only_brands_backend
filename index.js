@@ -10,6 +10,7 @@ const app = express();
 const bcrypt = require("./bcrypt");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
+const { resolveSoa } = require("dns");
 
 const configOptions = require("./knexfile").development;
 const knex = require("knex")(configOptions);
@@ -560,7 +561,7 @@ app.post("/api/followers", async (req, res) => {
 
   let id = req.body.ownUser;
   let follower = req.body.username;
-  let data = await knex("accounts_users").select().where("id", "=", id);
+  let data = await knex("accounts_users").select().where("account_id", "=", id);
 
   // console.log(follower)
 
@@ -575,22 +576,21 @@ app.post("/api/followers", async (req, res) => {
       let x = followers.filter((rowFilter) => {
         return rowFilter == follower;
       });
-      console.log(x);
+      // console.log(x);
       return x;
     }
   };
 
   const filter1 = filterFilter2();
-  console.log(filter1);
 
   if (filter1 === undefined) {
     console.log("error1");
     res.send("error");
   } else if (filter1.length > 0) {
     res.send("You already follow this user");
-    console.log("Already followed");
+    // console.log("Already followed");
   } else if (filter1.length <= 0) {
-    console.log(filter1.length);
+    // console.log(filter1.length);
 
     knex("accounts_users")
       .where("account_id", "=", id)
@@ -607,7 +607,6 @@ app.post("/api/followers", async (req, res) => {
 
 app.get("/api/followersAdd/:id", async (req, res) => {
   let id = req.params.id;
-  console.log(id);
 
   await knex("accounts_users")
     .select("followed_users")
@@ -618,11 +617,10 @@ app.get("/api/followersAdd/:id", async (req, res) => {
 
       let num = String(aLength);
 
-      console.log(num);
+      // console.log(num);
       res.send(num);
     });
 
-  console.log("done");
   return;
 });
 
@@ -631,13 +629,9 @@ app.get("/api/followersAdd/:id", async (req, res) => {
 app.post("/api/unfollow", async (req, res) => {
   let id = req.body.ownUser;
   let follower = req.body.username;
-  let data = await knex("accounts_users").select().where("id", "=", id);
-
-  console.log(follower);
+  let data = await knex("accounts_users").select().where("account_id", "=", id);
 
   let followers = JSON.parse(data[0].followed_users);
-
-  console.log(followers);
 
   const filterFilter2 = () => {
     if (followers.length === 0) {
@@ -646,30 +640,71 @@ app.post("/api/unfollow", async (req, res) => {
       let x = followers.filter((rowFilter) => {
         return rowFilter == follower;
       });
-      console.log(x);
       return x;
     }
   };
 
   const filter1 = filterFilter2();
-  console.log(filter1);
 
   if (filter1 === undefined) {
-    console.log("error1");
     res.send("error");
   } else if (filter1.length > 0) {
-    res.send("You already follow this user");
-    console.log("Already followed");
+    
+    let index = followers.indexOf(follower)
+    
+    followers.splice(index, 1)
+    
+    console.log(followers)
 
     knex("accounts_users")
       .where("account_id", "=", id)
-      .del({ followed_users: JSON.stringify([follower]) })
+      .update({followed_users: JSON.stringify(followers)})
       .then((data) => {
-        console.log("deleted");
-        console.log(data);
+        // console.log("deleted");
+        // console.log(data);
       });
   }
 });
+
+//Count Followers 
+
+app.get('/api/countFollowers/:user', (req, res) => {
+  console.log(req.params.user)
+  let user = req.params.user;
+
+  knex("accounts_users")
+  .count("user_name")
+  .where("followed_users", "ilike", `%"${user}"%`)
+  .then((data) => {
+
+    let count = data[0].count
+    res.send(count)
+   
+    console.log(count)
+  })
+
+})
+
+//Check if followed
+
+app.get('/api/checkFollowed/:username/:id', (req, res) => {
+  let username = req.params.username
+  let id = req.params.id 
+
+  knex("accounts_users")
+  .select('*')
+  .where("account_id", "=", id)
+  .andWhere("followed_users", "ilike", `%"${username}"%`)
+  .then((data) => {
+
+    if (data.length > 0){
+        res.send(true)
+    } else {
+        res.send(false)
+    }
+  })
+
+})
 
 //post review data to database
 app.post("/api/reviewdetails", async (req, res) => {
