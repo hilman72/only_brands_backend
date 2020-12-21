@@ -96,7 +96,7 @@ app.post("/api/signup/user", async function (req, res) {
         my_coupon: JSON.stringify([]),
         point: JSON.stringify([]),
         followed_users: JSON.stringify([]),
-      followed_brands: JSON.stringify([])
+        followed_brands: JSON.stringify([])
       })
       .catch((err) => console.log(err));
 
@@ -689,6 +689,32 @@ app.post("/api/reviewdetails", async (req, res) => {
   } catch (error) {
     res.send("There is some error, maybe not updated");
   }
+})
+
+app.post("/api/businessphotoedit", async (req, res) => {
+  let businessphotoinput = { photo: req.body.photo, }
+  try {
+    await knex("accounts_businesses")
+      .where("account_id", "=", req.body.id)
+      .update(businessphotoinput)
+    res.send("its done")
+  } catch (error) {
+    res.send("There is some error, maybe not updated");
+  }
+  return
+})
+
+app.get("/api/getbusinessphoto/:id", async (req, res) => {
+  try {
+    let photodata = await knex("accounts_businesses")
+      .select("photo")
+      .where("account_id", "=", req.params.id)
+    res.send(photodata)
+  }
+  catch (error) {
+    res.send("There is some error, maybe not updated");
+  }
+  return
 })
 //setting up port to listen to backend
 const port = 5000;
