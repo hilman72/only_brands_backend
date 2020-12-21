@@ -81,7 +81,7 @@ app.post("/api/signup/user", async function (req, res) {
       checked: false,
       user: true,
       business: false,
-      admin: false,
+      admin: false
     };
 
     let user = await knex("accounts")
@@ -95,6 +95,8 @@ app.post("/api/signup/user", async function (req, res) {
         user_name: username,
         my_coupon: JSON.stringify([]),
         point: JSON.stringify([]),
+        followed_users: JSON.stringify([]),
+      followed_brands: JSON.stringify([])
       })
       .catch((err) => console.log(err));
 
