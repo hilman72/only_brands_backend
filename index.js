@@ -489,10 +489,10 @@ app.post("/edit", async (req, res) => {
   }
 });
 
-app.get("/photo/:id", async (req, res) => {
+app.get("/photo/:username", async (req, res) => {
   let data = await knex("accounts_users")
     .select("photo")
-    .where("account_id", "=", req.params.id);
+    .where("user_name", "=", req.params.username);
   res.send(data);
 });
 
@@ -739,11 +739,11 @@ app.post("/api/businessphotoedit", async (req, res) => {
   return
 })
 
-app.get("/api/getbusinessphoto/:id", async (req, res) => {
+app.get("/api/getbusinessphoto/:username", async (req, res) => {
   try {
     let photodata = await knex("accounts_businesses")
       .select("photo")
-      .where("account_id", "=", req.params.id)
+      .where("business_name", "=", req.params.username)
     res.send(photodata)
   }
   catch (error) {
