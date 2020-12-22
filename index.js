@@ -181,6 +181,7 @@ app.post("/api/signup/business", async function (req, res) {
         account_id: user[0].id,
         business_name: username,
         provided_coupon: JSON.stringify([]),
+        review: JSON.stringify([]),
         point: JSON.stringify([]),
         point_detail: JSON.stringify([]),
         ref_coupon: JSON.stringify([]),
@@ -745,21 +746,22 @@ app.post("/api/reviewdetails", async (req, res) => {
   let reviewdata = {
     userid: req.body.userid,
     reviewdetail: req.body.reviewdetail,
-    business: req.body.businessid,
   };
-  let reviewinsert = {
-    review: reviewdata,
-  };
+  let reviewdataAll = await knex("accounts_businesses")
+    .select("review")
+    .where("business_name", "=", req.body.businessname);
+  //console.log(reviewdata)
+  let final = JSON.parse(reviewdataAll[0].review);
+  final.push(reviewdata);
+  console.log(final)
   try {
     await knex("accounts_businesses")
-      .where("account_id", "=", req.body.id)
-      .update(reviewinsert);
-    console.log("thats done");
+      .where("business_name", "=", req.body.businessname)
+      .update({ review: JSON.stringify(final) });
+    res.send("thats done");
   } catch (error) {
     res.send("There is some error, maybe not updated");
   }
-
-
 })
 
 app.post("/api/businessphotoedit", async (req, res) => {
