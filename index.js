@@ -911,7 +911,9 @@ app.post("/api/unfollow", async (req, res) => {
   if (filter1 === undefined) {
     res.send("error");
   } else if (filter1.length > 0) {
+    let index = followers.indexOf(follower);
 
+    followers.splice(index, 1);
 
     let index = followers.indexOf(follower)
 
@@ -943,7 +945,6 @@ app.get("/api/countFollowers/:user", (req, res) => {
       let count = data[0].count;
       res.send(count);
 
-
       console.log(count);
     });
 });
@@ -967,7 +968,6 @@ app.get("/api/checkFollowed/:username/:id", (req, res) => {
       }
     });
 });
-
 
 //Following a Business
 
@@ -1094,6 +1094,7 @@ app.get('/api/countBrandFollowers/:user', (req, res) => {
   let user = req.params.user;
 
   knex("accounts_users")
+<<<<<<< HEAD
   .count("user_name")
   .where("followed_brands", "ilike", `%"${user}"%`)
   .then((data) => {
@@ -1105,6 +1106,17 @@ app.get('/api/countBrandFollowers/:user', (req, res) => {
   })
 
 })
+=======
+    .count("user_name")
+    .where("followed_brands", "ilike", `%"${user}"%`)
+    .then((data) => {
+      let count = data[0].count;
+      res.send(count);
+
+      console.log(count);
+    });
+});
+>>>>>>> 78d268d088aa4106528e02447b81dd07fb93fd2e
 
 //post review data to database
 app.post("/api/reviewdetails", async (req, res) => {
