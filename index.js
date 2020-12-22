@@ -861,7 +861,6 @@ app.post("/api/followers", async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
 //Setting followers
 
 app.get("/api/followersAdd/:username", async (req, res) => {
@@ -886,9 +885,6 @@ app.get("/api/followersAdd/:username", async (req, res) => {
 });
 
 //Handle unfollow
-=======
-//Handle unfollow user
->>>>>>> master
 
 app.post("/api/unfollow", async (req, res) => {
   let id = req.body.ownUser;
@@ -915,15 +911,6 @@ app.post("/api/unfollow", async (req, res) => {
   if (filter1 === undefined) {
     res.send("error");
   } else if (filter1.length > 0) {
-<<<<<<< HEAD
-    let index = followers.indexOf(follower);
-
-    followers.splice(index, 1);
-
-    console.log(followers);
-
-    knex("accounts_users")
-=======
 
 
     let index = followers.indexOf(follower)
@@ -933,7 +920,6 @@ app.post("/api/unfollow", async (req, res) => {
     console.log(followers)
 
     await knex("accounts_users")
->>>>>>> master
       .where("account_id", "=", id)
       .update({ followed_users: JSON.stringify(followers) })
       .then((data) => {
@@ -953,26 +939,17 @@ app.get("/api/countFollowers/:user", (req, res) => {
     .count("user_name")
     .where("followed_users", "ilike", `%"${user}"%`)
     .then((data) => {
-<<<<<<< HEAD
-      let count = data[0].count;
-      res.send(count);
-=======
 
       let count = data[0].count;
       res.send(count);
 
->>>>>>> master
 
       console.log(count);
     });
 });
 
-<<<<<<< HEAD
-//Check if followed
-=======
 //Check if user is followed
 
->>>>>>> master
 
 app.get("/api/checkFollowed/:username/:id", (req, res) => {
   let username = req.params.username;
@@ -990,8 +967,6 @@ app.get("/api/checkFollowed/:username/:id", (req, res) => {
       }
     });
 });
-<<<<<<< HEAD
-=======
 
 
 //Following a Business
@@ -1130,7 +1105,6 @@ app.get('/api/countBrandFollowers/:user', (req, res) => {
   })
 
 })
->>>>>>> master
 
 //post review data to database
 app.post("/api/reviewdetails", async (req, res) => {
