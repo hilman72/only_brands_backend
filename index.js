@@ -1094,19 +1094,6 @@ app.get('/api/countBrandFollowers/:user', (req, res) => {
   let user = req.params.user;
 
   knex("accounts_users")
-<<<<<<< HEAD
-  .count("user_name")
-  .where("followed_brands", "ilike", `%"${user}"%`)
-  .then((data) => {
-
-    let count = data[0].count
-    res.send(count)
-   
-    console.log(count)
-  })
-
-})
-=======
     .count("user_name")
     .where("followed_brands", "ilike", `%"${user}"%`)
     .then((data) => {
@@ -1116,7 +1103,6 @@ app.get('/api/countBrandFollowers/:user', (req, res) => {
       console.log(count);
     });
 });
->>>>>>> 78d268d088aa4106528e02447b81dd07fb93fd2e
 
 //post review data to database
 app.post("/api/reviewdetails", async (req, res) => {
