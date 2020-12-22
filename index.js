@@ -806,7 +806,6 @@ app.post("/api/unfollow", async (req, res) => {
 
     console.log(followers)
 
-
     await knex("accounts_users")
       .where("account_id", "=", id)
       .update({ followed_users: JSON.stringify(followers) })
