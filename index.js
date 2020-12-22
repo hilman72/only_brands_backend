@@ -913,10 +913,6 @@ app.post("/api/unfollow", async (req, res) => {
   } else if (filter1.length > 0) {
     let index = followers.indexOf(follower);
 
-    followers.splice(index, 1);
-
-    let index = followers.indexOf(follower)
-
     followers.splice(index, 1)
 
     console.log(followers)
