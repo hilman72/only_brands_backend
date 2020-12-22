@@ -180,6 +180,7 @@ app.post("/api/signup/business", async function (req, res) {
         account_id: user[0].id,
         business_name: username,
         provided_coupon: JSON.stringify([]),
+        review: JSON.stringify([]),
         point: JSON.stringify([]),
         point_detail: JSON.stringify([]),
         ref_coupon: JSON.stringify([]),
@@ -849,7 +850,7 @@ app.post("/api/followers", async (req, res) => {
   } else if (filter1.length <= 0) {
     // console.log(filter1.length);
 
-    knex("accounts_users")
+    await knex("accounts_users")
       .where("account_id", "=", id)
       .update({ followed_users: JSON.stringify([...followers, follower]) })
       .then((data) => {
@@ -860,6 +861,7 @@ app.post("/api/followers", async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
 //Setting followers
 
 app.get("/api/followersAdd/:username", async (req, res) => {
@@ -884,6 +886,9 @@ app.get("/api/followersAdd/:username", async (req, res) => {
 });
 
 //Handle unfollow
+=======
+//Handle unfollow user
+>>>>>>> master
 
 app.post("/api/unfollow", async (req, res) => {
   let id = req.body.ownUser;
@@ -910,6 +915,7 @@ app.post("/api/unfollow", async (req, res) => {
   if (filter1 === undefined) {
     res.send("error");
   } else if (filter1.length > 0) {
+<<<<<<< HEAD
     let index = followers.indexOf(follower);
 
     followers.splice(index, 1);
@@ -917,11 +923,22 @@ app.post("/api/unfollow", async (req, res) => {
     console.log(followers);
 
     knex("accounts_users")
+=======
+
+
+    let index = followers.indexOf(follower)
+
+    followers.splice(index, 1)
+
+    console.log(followers)
+
+    await knex("accounts_users")
+>>>>>>> master
       .where("account_id", "=", id)
       .update({ followed_users: JSON.stringify(followers) })
       .then((data) => {
-        // console.log("deleted");
-        // console.log(data);
+        console.log("deleted");
+        console.log(data);
       });
   }
 });
@@ -936,14 +953,26 @@ app.get("/api/countFollowers/:user", (req, res) => {
     .count("user_name")
     .where("followed_users", "ilike", `%"${user}"%`)
     .then((data) => {
+<<<<<<< HEAD
       let count = data[0].count;
       res.send(count);
+=======
+
+      let count = data[0].count;
+      res.send(count);
+
+>>>>>>> master
 
       console.log(count);
     });
 });
 
+<<<<<<< HEAD
 //Check if followed
+=======
+//Check if user is followed
+
+>>>>>>> master
 
 app.get("/api/checkFollowed/:username/:id", (req, res) => {
   let username = req.params.username;
@@ -961,26 +990,172 @@ app.get("/api/checkFollowed/:username/:id", (req, res) => {
       }
     });
 });
+<<<<<<< HEAD
+=======
+
+
+//Following a Business
+
+app.post("/api/followBrand", async (req, res) => {
+  console.log(req.body.username)
+  console.log(req.body.ownUser)
+
+  let id = req.body.ownUser;
+  let follower = req.body.username;
+  let data = await knex("accounts_users").select().where("account_id", "=", id);
+
+  console.log(follower)
+  console.log("jofj")
+
+  let followers = JSON.parse(data[0].followed_brands);
+  console.log(followers)
+
+  // console.log(followers)
+
+  const filterFilter2 = () => {
+    if (followers.length === 0) {
+      return [];
+    } else if (followers.length > 0) {
+      let x = followers.filter((rowFilter) => {
+        return rowFilter == follower;
+      });
+      // console.log(x);
+      return x;
+    }
+  };
+
+  const filter1 = filterFilter2();
+
+  if (filter1 === undefined) {
+    console.log("error1");
+    res.send("error");
+  } else if (filter1.length > 0) {
+    res.send("You already follow this user");
+    // console.log("Already followed");
+  } else if (filter1.length <= 0) {
+    console.log(filter1.length);
+
+    knex("accounts_users")
+      .where("account_id", "=", id)
+      .update({ followed_brands: JSON.stringify([...followers, follower]) })
+      .then((data) => {
+        console.log(data);
+      });
+    console.log("finished");
+    return;
+  }
+});
+
+//Unfollow a Brand 
+
+app.post("/api/unfollowBrand", async (req, res) => {
+  console.log("boom")
+  let id = req.body.ownUser;
+
+  let follower = req.body.username;
+  console.log(follower)
+  let data = await knex("accounts_users").select().where("account_id", "=", id);
+
+  let followers = JSON.parse(data[0].followed_brands);
+
+  const filterFilter2 = () => {
+    if (followers.length === 0) {
+      return [];
+    } else if (followers.length > 0) {
+      let x = followers.filter((rowFilter) => {
+        return rowFilter == follower;
+      });
+      return x;
+    }
+  };
+
+  const filter1 = filterFilter2();
+
+  if (filter1 === undefined) {
+    res.send("error");
+  } else if (filter1.length > 0) {
+    
+    let index = followers.indexOf(follower)
+    
+    followers.splice(index, 1)
+    
+    console.log(followers)
+
+    knex("accounts_users")
+      .where("account_id", "=", id)
+      .update({followed_brands: JSON.stringify(followers)})
+      .then((data) => {
+        console.log("deleted");
+        console.log(data);
+      });
+  }
+});
+
+//Check if Brand is Followed
+
+app.get("/api/checkBrandFollowed/:username/:id", (req, res) => {
+  let username = req.params.username
+  let id = req.params.id 
+
+  knex("accounts_users")
+  .select('*')
+  .where("account_id", "=", id)
+  .andWhere("followed_brands", "ilike", `%"${username}"%`)
+  .then((data) => {
+    console.log(data)
+
+    if (data.length > 0){
+        res.send(true)
+    } else {
+        res.send(false)
+    }
+  })
+
+})
+
+
+app.get('/api/countBrandFollowers/:user', (req, res) => {
+  console.log(req.params.user)
+  let user = req.params.user;
+
+  knex("accounts_users")
+  .count("user_name")
+  .where("followed_brands", "ilike", `%"${user}"%`)
+  .then((data) => {
+
+    let count = data[0].count
+    res.send(count)
+   
+    console.log(count)
+  })
+
+})
+>>>>>>> master
 
 //post review data to database
 app.post("/api/reviewdetails", async (req, res) => {
   let reviewdata = {
     userid: req.body.userid,
     reviewdetail: req.body.reviewdetail,
-    business: req.body.businessid,
   };
-  let reviewinsert = {
-    review: reviewdata,
-  };
+  let reviewdataAll = await knex("accounts_businesses")
+    .select("review")
+    .where("business_name", "=", req.body.businessname);
+  //console.log(reviewdata)
+  let final = JSON.parse(reviewdataAll[0].review);
+  final.push(reviewdata);
+  console.log(final)
   try {
     await knex("accounts_businesses")
-      .where("account_id", "=", req.body.id)
-      .update(reviewinsert);
-    console.log("thats done");
+      .where("business_name", "=", req.body.businessname)
+      .update({ review: JSON.stringify(final) });
+    res.send("thats done");
   } catch (error) {
     res.send("There is some error, maybe not updated");
   }
+
 });
+
 
 app.post("/api/businessphotoedit", async (req, res) => {
   let businessphotoinput = { photo: req.body.photo };
