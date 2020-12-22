@@ -269,7 +269,7 @@ app.post("/api/createCoupon", async function (req, res) {
         used: false,
         claim_number: 0,
       })
-      .then(() => {})
+      .then(() => { })
       .catch((err) => console.log(err));
   } else {
     res.sendStatus(401);
@@ -671,8 +671,9 @@ app.get("/api/search/:ggoptions/:filter", async (req, res) => {
     let data = await knex("accounts_businesses")
       .select()
       .where("description", "Ilike", `%${req.params.filter}%`)
-      .orWhere("category", "Ilike", `%${req.params.filter}%`);
-    console.log("you are checking Brands");
+      .orWhere("category", "Ilike", `%${req.params.filter}%`)
+      .orWhere("business_name", "Ilike", `%${req.params.filter}%`)
+    console.log(data)
     res.send(data);
     return;
   } else if (req.params.ggoptions === "Coupons") {
@@ -769,15 +770,17 @@ app.post("/api/followers", async (req, res) => {
   }
 });
 
-//Count followers
+//Setting followers
 
-app.get("/api/followersAdd/:id", async (req, res) => {
-  let id = req.params.id;
+app.get("/api/followersAdd/:username", async (req, res) => {
+  let user = req.params.username;
+  console.log(user)
 
   await knex("accounts_users")
     .select("followed_users")
-    .where("account_id", "=", id)
+    .where("user_name", "=", user)
     .then((data) => {
+      console.log(data)
       let length = JSON.parse(data[0].followed_users);
       let aLength = length.length;
 
@@ -794,7 +797,9 @@ app.get("/api/followersAdd/:id", async (req, res) => {
 
 app.post("/api/unfollow", async (req, res) => {
   let id = req.body.ownUser;
+  console.log(id)
   let follower = req.body.username;
+  console.log(follower)
   let data = await knex("accounts_users").select().where("account_id", "=", id);
 
   let followers = JSON.parse(data[0].followed_users);
@@ -815,11 +820,14 @@ app.post("/api/unfollow", async (req, res) => {
   if (filter1 === undefined) {
     res.send("error");
   } else if (filter1.length > 0) {
-    let index = followers.indexOf(follower);
 
-    followers.splice(index, 1);
 
-    console.log(followers);
+    let index = followers.indexOf(follower)
+
+    followers.splice(index, 1)
+
+    console.log(followers)
+
 
     knex("accounts_users")
       .where("account_id", "=", id)
@@ -841,14 +849,17 @@ app.get("/api/countFollowers/:user", (req, res) => {
     .count("user_name")
     .where("followed_users", "ilike", `%"${user}"%`)
     .then((data) => {
+
       let count = data[0].count;
       res.send(count);
+
 
       console.log(count);
     });
 });
 
 //Check if followed
+
 
 app.get("/api/checkFollowed/:username/:id", (req, res) => {
   let username = req.params.username;
@@ -866,6 +877,7 @@ app.get("/api/checkFollowed/:username/:id", (req, res) => {
       }
     });
 });
+
 
 //post review data to database
 app.post("/api/reviewdetails", async (req, res) => {
