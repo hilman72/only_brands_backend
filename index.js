@@ -911,11 +911,14 @@ app.post("/api/unfollow", async (req, res) => {
   if (filter1 === undefined) {
     res.send("error");
   } else if (filter1.length > 0) {
-    let index = followers.indexOf(follower);
 
-    followers.splice(index, 1);
 
-    console.log(followers);
+    let index = followers.indexOf(follower)
+
+    followers.splice(index, 1)
+
+    console.log(followers)
+
 
     await knex("accounts_users")
       .where("account_id", "=", id)
@@ -937,12 +940,16 @@ app.get("/api/countFollowers/:user", (req, res) => {
     .count("user_name")
     .where("followed_users", "ilike", `%"${user}"%`)
     .then((data) => {
+
+
       let count = data[0].count;
       res.send(count);
+
 
       console.log(count);
     });
 });
+
 
 app.get("/api/checkFollowed/:username/:id", (req, res) => {
   let username = req.params.username;
@@ -960,6 +967,7 @@ app.get("/api/checkFollowed/:username/:id", (req, res) => {
       }
     });
 });
+
 
 //Following a Business
 
@@ -1089,9 +1097,10 @@ app.get("/api/countBrandFollowers/:user", (req, res) => {
       let count = data[0].count;
       res.send(count);
 
+
       console.log(count);
     });
-});
+
 
 //post review data to database
 app.post("/api/reviewdetails", async (req, res) => {
