@@ -913,9 +913,9 @@ app.post("/api/unfollow", async (req, res) => {
   } else if (filter1.length > 0) {
     let index = followers.indexOf(follower);
 
-    followers.splice(index, 1)
+    followers.splice(index, 1);
 
-    console.log(followers)
+    console.log(followers);
 
     await knex("accounts_users")
       .where("account_id", "=", id)
@@ -937,7 +937,6 @@ app.get("/api/countFollowers/:user", (req, res) => {
     .count("user_name")
     .where("followed_users", "ilike", `%"${user}"%`)
     .then((data) => {
-
       let count = data[0].count;
       res.send(count);
 
@@ -946,7 +945,6 @@ app.get("/api/countFollowers/:user", (req, res) => {
 });
 
 //Check if user is followed
-
 
 app.get("/api/checkFollowed/:username/:id", (req, res) => {
   let username = req.params.username;
@@ -968,18 +966,18 @@ app.get("/api/checkFollowed/:username/:id", (req, res) => {
 //Following a Business
 
 app.post("/api/followBrand", async (req, res) => {
-  console.log(req.body.username)
-  console.log(req.body.ownUser)
+  console.log(req.body.username);
+  console.log(req.body.ownUser);
 
   let id = req.body.ownUser;
   let follower = req.body.username;
   let data = await knex("accounts_users").select().where("account_id", "=", id);
 
-  console.log(follower)
-  console.log("jofj")
+  console.log(follower);
+  console.log("jofj");
 
   let followers = JSON.parse(data[0].followed_brands);
-  console.log(followers)
+  console.log(followers);
 
   // console.log(followers)
 
@@ -1017,14 +1015,14 @@ app.post("/api/followBrand", async (req, res) => {
   }
 });
 
-//Unfollow a Brand 
+//Unfollow a Brand
 
 app.post("/api/unfollowBrand", async (req, res) => {
-  console.log("boom")
+  console.log("boom");
   let id = req.body.ownUser;
 
   let follower = req.body.username;
-  console.log(follower)
+  console.log(follower);
   let data = await knex("accounts_users").select().where("account_id", "=", id);
 
   let followers = JSON.parse(data[0].followed_brands);
@@ -1045,16 +1043,15 @@ app.post("/api/unfollowBrand", async (req, res) => {
   if (filter1 === undefined) {
     res.send("error");
   } else if (filter1.length > 0) {
-    
-    let index = followers.indexOf(follower)
-    
-    followers.splice(index, 1)
-    
-    console.log(followers)
+    let index = followers.indexOf(follower);
+
+    followers.splice(index, 1);
+
+    console.log(followers);
 
     knex("accounts_users")
       .where("account_id", "=", id)
-      .update({followed_brands: JSON.stringify(followers)})
+      .update({ followed_brands: JSON.stringify(followers) })
       .then((data) => {
         console.log("deleted");
         console.log(data);
@@ -1065,28 +1062,26 @@ app.post("/api/unfollowBrand", async (req, res) => {
 //Check if Brand is Followed
 
 app.get("/api/checkBrandFollowed/:username/:id", (req, res) => {
-  let username = req.params.username
-  let id = req.params.id 
+  let username = req.params.username;
+  let id = req.params.id;
 
   knex("accounts_users")
-  .select('*')
-  .where("account_id", "=", id)
-  .andWhere("followed_brands", "ilike", `%"${username}"%`)
-  .then((data) => {
-    console.log(data)
+    .select("*")
+    .where("account_id", "=", id)
+    .andWhere("followed_brands", "ilike", `%"${username}"%`)
+    .then((data) => {
+      console.log(data);
 
-    if (data.length > 0){
-        res.send(true)
-    } else {
-        res.send(false)
-    }
-  })
+      if (data.length > 0) {
+        res.send(true);
+      } else {
+        res.send(false);
+      }
+    });
+});
 
-})
-
-
-app.get('/api/countBrandFollowers/:user', (req, res) => {
-  console.log(req.params.user)
+app.get("/api/countBrandFollowers/:user", (req, res) => {
+  console.log(req.params.user);
   let user = req.params.user;
 
   knex("accounts_users")
@@ -1112,7 +1107,7 @@ app.post("/api/reviewdetails", async (req, res) => {
   //console.log(reviewdata)
   let final = JSON.parse(reviewdataAll[0].review);
   final.push(reviewdata);
-  console.log(final)
+  console.log(final);
   try {
     await knex("accounts_businesses")
       .where("business_name", "=", req.body.businessname)
@@ -1121,9 +1116,7 @@ app.post("/api/reviewdetails", async (req, res) => {
   } catch (error) {
     res.send("There is some error, maybe not updated");
   }
-
 });
-
 
 app.post("/api/businessphotoedit", async (req, res) => {
   let businessphotoinput = { photo: req.body.photo };
@@ -1149,6 +1142,13 @@ app.get("/api/getbusinessphoto/:username", async (req, res) => {
   }
   return;
 });
+
+app.post("/api/displayCoupon/", async (req, res) => {
+  knex("business_coupons")
+    .select()
+    .then((data) => res.send(data));
+});
+
 //setting up port to listen to backend
 const port = 5000;
 app.listen(port);
