@@ -632,15 +632,17 @@ app.post("/api/followers", async (req, res) => {
   }
 });
 
-//Count followers
+//Setting followers
 
-app.get("/api/followersAdd/:id", async (req, res) => {
-  let id = req.params.id;
+app.get("/api/followersAdd/:username", async (req, res) => {
+  let user = req.params.username;
+  console.log(user)
 
   await knex("accounts_users")
     .select("followed_users")
-    .where("account_id", "=", id)
+    .where("user_name", "=", user)
     .then((data) => {
+      console.log(data)
       let length = JSON.parse(data[0].followed_users);
       let aLength = length.length;
 
@@ -657,7 +659,9 @@ app.get("/api/followersAdd/:id", async (req, res) => {
 
 app.post("/api/unfollow", async (req, res) => {
   let id = req.body.ownUser;
+  console.log(id)
   let follower = req.body.username;
+  console.log(follower)
   let data = await knex("accounts_users").select().where("account_id", "=", id);
 
   let followers = JSON.parse(data[0].followed_users);
