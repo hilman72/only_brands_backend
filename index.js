@@ -100,8 +100,7 @@ app.post("/api/signup/user", async function (req, res) {
         received_ref: JSON.stringify([]),
         followed_users: JSON.stringify([]),
 
-        followed_brands: JSON.stringify([])
-
+        followed_brands: JSON.stringify([]),
       })
       .catch((err) => console.log(err));
 
@@ -358,6 +357,8 @@ app.post("/api/claimCoupon/:name", async (req, res) => {
     date: date,
     user_name: name,
     business_name: b_name,
+    used: false,
+    expired: false,
     creation_date: today,
   };
 
@@ -417,15 +418,151 @@ app.post("/api/makeRef/", async (req, res) => {
 });
 
 //display your ref coupon
-app.post("/api/yourRef/", (req, res) => {
+app.post("/api/yourRef/", async (req, res) => {
   let name = req.body.name;
 
-  knex("referal_coupons")
+  await knex("referal_coupons")
     .select()
     .where("send_by", "=", name)
     .then((data) => {
       res.send(data);
     });
+});
+
+//send referal coupon
+
+app.post("/api/sendRef/", async (req, res) => {
+  let name = req.body.name;
+  let b_name = req.body.business_name;
+  let id = req.body.id;
+
+  const detail = await knex("accounts")
+    .select("email")
+    .where("username", "=", name);
+
+  let email = detail[0].email;
+
+  const url = `${process.env.URL}api/redirectRef/${id}/`;
+
+  let tags = `
+          <p>Thankyou For Your Send Referal</p>
+          <br/>
+          <br/>
+          <h3>Please Copy The Link Below and Send to your friends to earn Rewards</h3>
+          <ul>  
+              <li>${url}</li>
+          </ul>
+          <br/>
+          <h3>Thank You.</h3>`;
+
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP,
+    port: process.env.PORT,
+    secure: false,
+    auth: {
+      user: process.env.EMAIL,
+      pass: process.env.PASSWORD,
+    },
+  });
+
+  let mailOptions = {
+    from: `${process.env.EMAIL}`,
+    to: `${email}`,
+    subject: "👻  Your Referal Link from Only Brands  👻 ",
+    text: "✔ Hello, ",
+    html: `${tags}`,
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      return console.log(error);
+    }
+    console.log("Message sent: %s", info.messageId);
+  });
+});
+
+//redirect referal link
+
+app.get("/api/redirectRef/:id/", async (req, res) => {
+  let id = req.params.id;
+
+  console.log("hi");
+  res.redirect(`http://localhost:3000/claimRef/${id}`);
+});
+
+//claim referal coupon
+
+app.post("/api/claimRef/:id", async (req, res) => {
+  let name = req.body.name;
+  let b_name = req.body.b_name;
+  let sent_by = req.body.sent_by;
+  let id = req.params.id;
+
+  let uuid = crypto.randomBytes(4).toString("hex");
+
+  const user = await knex("accounts_users")
+    .select()
+    .where("user_name", "=", name);
+  let rece_ref = JSON.parse(user[0].received_ref);
+
+  const business = await knex("accounts_businesses")
+    .select()
+    .where("business_name", "=", b_name);
+  let ref_coupon = JSON.parse(business[0].ref_coupon);
+
+  const filterFilter = () => {
+    if (rece_ref.length === 0) {
+      return [];
+    } else if (rece_ref.length > 0) {
+      let x = rece_ref.filter((rowFilter) => {
+        return rowFilter.business_name === b_name;
+      });
+      return x;
+    }
+  };
+
+  let filter = filterFilter();
+  // console.log(filter);
+
+  let newRef = {
+    coupon_id: uuid,
+    linked_id: id,
+    title: `${b_name}s Referal Coupon`,
+    description: `refer from ${sent_by}`,
+    user_name: name,
+    business_name: b_name,
+    sent_by: sent_by,
+    used: false,
+    creation_date: today,
+  };
+
+  let newRef2 = {
+    coupon_id: uuid,
+    linked_id: id,
+    title: `${b_name}s Referal Coupon`,
+    description: `refer from ${sent_by}`,
+    user_name: name,
+    business_name: b_name,
+    sent_by: sent_by,
+    used: false,
+    creation_date: today,
+  };
+
+  if (filter === undefined) {
+    console.log("error1");
+    res.send("error");
+  } else if (filter.length <= 0 || coupon.length <= 0) {
+    await knex("accounts_users")
+      .where("user_name", "=", name)
+      .update({ received_ref: JSON.stringify([...rece_ref, newRef]) });
+    await knex("accounts_businesses")
+      .where("id", "=", business_id)
+      .update({ ref_coupon: JSON.stringify([...ref_coupon, newRef2]) });
+    res.send("ok");
+  } else {
+    console.log("error2");
+    res.send("error");
+  }
 });
 
 //get for my_coupon page (user)
@@ -685,11 +822,13 @@ app.post("/api/unfollow", async (req, res) => {
     res.send("error");
   } else if (filter1.length > 0) {
 
+
     let index = followers.indexOf(follower)
 
     followers.splice(index, 1)
 
     console.log(followers)
+
 
     knex("accounts_users")
       .where("account_id", "=", id)
@@ -701,10 +840,10 @@ app.post("/api/unfollow", async (req, res) => {
   }
 });
 
-//Count Followers 
+//Count Followers
 
-app.get('/api/countFollowers/:user', (req, res) => {
-  console.log(req.params.user)
+app.get("/api/countFollowers/:user", (req, res) => {
+  console.log(req.params.user);
   let user = req.params.user;
 
   knex("accounts_users")
@@ -712,34 +851,34 @@ app.get('/api/countFollowers/:user', (req, res) => {
     .where("followed_users", "ilike", `%"${user}"%`)
     .then((data) => {
 
-      let count = data[0].count
-      res.send(count)
+      let count = data[0].count;
+      res.send(count);
 
-      console.log(count)
-    })
 
-})
+      console.log(count);
+    });
+});
 
 //Check if followed
 
-app.get('/api/checkFollowed/:username/:id', (req, res) => {
-  let username = req.params.username
-  let id = req.params.id
+
+app.get("/api/checkFollowed/:username/:id", (req, res) => {
+  let username = req.params.username;
+  let id = req.params.id;
 
   knex("accounts_users")
-    .select('*')
+    .select("*")
     .where("account_id", "=", id)
     .andWhere("followed_users", "ilike", `%"${username}"%`)
     .then((data) => {
-
       if (data.length > 0) {
-        res.send(true)
+        res.send(true);
       } else {
-        res.send(false)
+        res.send(false);
       }
-    })
+    });
+});
 
-})
 
 //post review data to database
 app.post("/api/reviewdetails", async (req, res) => {
@@ -762,33 +901,34 @@ app.post("/api/reviewdetails", async (req, res) => {
   } catch (error) {
     res.send("There is some error, maybe not updated");
   }
-})
+
+});
+
 
 app.post("/api/businessphotoedit", async (req, res) => {
-  let businessphotoinput = { photo: req.body.photo, }
+  let businessphotoinput = { photo: req.body.photo };
   try {
     await knex("accounts_businesses")
       .where("account_id", "=", req.body.id)
-      .update(businessphotoinput)
-    res.send("its done")
+      .update(businessphotoinput);
+    res.send("its done");
   } catch (error) {
     res.send("There is some error, maybe not updated");
   }
-  return
-})
+  return;
+});
 
 app.get("/api/getbusinessphoto/:username", async (req, res) => {
   try {
     let photodata = await knex("accounts_businesses")
       .select("photo")
-      .where("business_name", "=", req.params.username)
-    res.send(photodata)
-  }
-  catch (error) {
+      .where("business_name", "=", req.params.username);
+    res.send(photodata);
+  } catch (error) {
     res.send("There is some error, maybe not updated");
   }
-  return
-})
+  return;
+});
 //setting up port to listen to backend
 const port = 5000;
 app.listen(port);
