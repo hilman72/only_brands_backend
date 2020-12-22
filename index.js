@@ -270,7 +270,7 @@ app.post("/api/createCoupon", async function (req, res) {
         used: false,
         claim_number: 0,
       })
-      .then(() => {})
+      .then(() => { })
       .catch((err) => console.log(err));
   } else {
     res.sendStatus(401);
@@ -534,8 +534,9 @@ app.get("/api/search/:ggoptions/:filter", async (req, res) => {
     let data = await knex("accounts_businesses")
       .select()
       .where("description", "Ilike", `%${req.params.filter}%`)
-      .orWhere("category", "Ilike", `%${req.params.filter}%`);
-    console.log("you are checking Brands");
+      .orWhere("category", "Ilike", `%${req.params.filter}%`)
+      .orWhere("business_name", "Ilike", `%${req.params.filter}%`)
+    console.log(data)
     res.send(data);
     return;
   } else if (req.params.ggoptions === "Coupons") {
@@ -682,16 +683,16 @@ app.post("/api/unfollow", async (req, res) => {
   if (filter1 === undefined) {
     res.send("error");
   } else if (filter1.length > 0) {
-    
+
     let index = followers.indexOf(follower)
-    
+
     followers.splice(index, 1)
-    
+
     console.log(followers)
 
     knex("accounts_users")
       .where("account_id", "=", id)
-      .update({followed_users: JSON.stringify(followers)})
+      .update({ followed_users: JSON.stringify(followers) })
       .then((data) => {
         // console.log("deleted");
         // console.log(data);
@@ -706,15 +707,15 @@ app.get('/api/countFollowers/:user', (req, res) => {
   let user = req.params.user;
 
   knex("accounts_users")
-  .count("user_name")
-  .where("followed_users", "ilike", `%"${user}"%`)
-  .then((data) => {
+    .count("user_name")
+    .where("followed_users", "ilike", `%"${user}"%`)
+    .then((data) => {
 
-    let count = data[0].count
-    res.send(count)
-   
-    console.log(count)
-  })
+      let count = data[0].count
+      res.send(count)
+
+      console.log(count)
+    })
 
 })
 
@@ -722,20 +723,20 @@ app.get('/api/countFollowers/:user', (req, res) => {
 
 app.get('/api/checkFollowed/:username/:id', (req, res) => {
   let username = req.params.username
-  let id = req.params.id 
+  let id = req.params.id
 
   knex("accounts_users")
-  .select('*')
-  .where("account_id", "=", id)
-  .andWhere("followed_users", "ilike", `%"${username}"%`)
-  .then((data) => {
+    .select('*')
+    .where("account_id", "=", id)
+    .andWhere("followed_users", "ilike", `%"${username}"%`)
+    .then((data) => {
 
-    if (data.length > 0){
+      if (data.length > 0) {
         res.send(true)
-    } else {
+      } else {
         res.send(false)
-    }
-  })
+      }
+    })
 
 })
 
