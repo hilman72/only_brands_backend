@@ -1110,11 +1110,41 @@ app.post("/api/reviewdetails", async (req, res) => {
   //console.log(reviewdata)
   let final = JSON.parse(reviewdataAll[0].review);
   final.push(reviewdata);
-  // console.log(final);
+  //point system for first time 
+
+  //input the data of the user into it
+  let inputpoint = 5
+  let pointdata = {
+    pointuserid: req.body.userid,
+    point: inputpoint
+  }
+
+  //Get all data about point from data base
+  let pointdataAll = await knex("accounts_businesses")
+    .select("point")
+    .where("business_name", "=", req.body.businessname)
+  //Unlock JSON from database 
+  let finalpoint = JSON.parse(pointdataAll[0].point)
+  //console.log(finalpoint)
+  //Push the new object into the point  //the thing to update is finalpoint
+  const correctUserFinal = finalpoint.filter(data => data.pointuserid === req.body.userid)
+  if (correctUserFinal.length > 0) {
+    //console.log(correctUserFinal[0])
+    correctUserFinal[0].point += 5
+    //console.log(correctUserFinal[0])
+    let user_index = await finalpoint.indexOf(correctUserFinal[0]);
+    finalpoint.splice(user_index, 1, correctUserFinal[0]);
+    //console.log(finalpoint)
+    //end of point system for review
+  }
+  else {
+    finalpoint.push(pointdata)
+    //console.log(finalpoint)
+  }
   try {
     await knex("accounts_businesses")
       .where("business_name", "=", req.body.businessname)
-      .update({ review: JSON.stringify(final) });
+      .update({ review: JSON.stringify(final), point: JSON.stringify(finalpoint) })
     res.send("thats done");
   } catch (error) {
     res.send("There is some error, maybe not updated");
@@ -1174,6 +1204,23 @@ app.post("/api/bizdetailsupload", async (req, res) => {
     .update({ category: req.body.category, description: req.body.description })
   res.send("it works");
   return
+})
+
+
+app.get("/user_rank/:userid/:business", async (req, res) => {
+  let pointdataAll = await knex("accounts_businesses")
+    .select("point")
+    .where("business_name", "=", req.params.business)
+  //Unlock JSON from database 
+  let finalpoint = JSON.parse(pointdataAll[0].point)
+  //Push the new object into the point  //the thing to update is finalpoint
+  const correctUserFinal = finalpoint.filter(data => data.pointuserid === req.params.userid)
+  if (correctUserFinal.length > 0) {
+    res.send(correctUserFinal[0])
+  }
+  else {
+    res.send("error")
+  }
 })
 
 //setting up port to listen to backend
