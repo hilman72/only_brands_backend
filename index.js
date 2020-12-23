@@ -1048,14 +1048,14 @@ app.post("/api/unfollowBrand", async (req, res) => {
 
     followers.splice(index, 1);
 
-    console.log(followers);
+    // console.log(followers);
 
     knex("accounts_users")
       .where("account_id", "=", id)
       .update({ followed_brands: JSON.stringify(followers) })
       .then((data) => {
         console.log("deleted");
-        console.log(data);
+        // console.log(data);
       });
   }
 });
@@ -1073,7 +1073,7 @@ app.get("/api/checkBrandFollowed/:username/:id", (req, res) => {
     .where("account_id", "=", id)
     .andWhere("followed_brands", "ilike", `%"${username}"%`)
     .then((data) => {
-      console.log(data);
+      // console.log(data);
 
       if (data.length > 0) {
         res.send(true);
@@ -1084,7 +1084,7 @@ app.get("/api/checkBrandFollowed/:username/:id", (req, res) => {
 });
 
 app.get("/api/countBrandFollowers/:user", (req, res) => {
-  console.log(req.params.user);
+  // console.log(req.params.user);
   let user = req.params.user;
 
   knex("accounts_users")
@@ -1094,7 +1094,7 @@ app.get("/api/countBrandFollowers/:user", (req, res) => {
       let count = data[0].count;
       res.send(count);
 
-      console.log(count);
+      // console.log(count);
     });
 });
 
@@ -1110,7 +1110,7 @@ app.post("/api/reviewdetails", async (req, res) => {
   //console.log(reviewdata)
   let final = JSON.parse(reviewdataAll[0].review);
   final.push(reviewdata);
-  console.log(final);
+  // console.log(final);
   try {
     await knex("accounts_businesses")
       .where("business_name", "=", req.body.businessname)
