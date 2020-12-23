@@ -936,16 +936,16 @@ app.post("/api/unfollowBrand", async (req, res) => {
   if (filter1 === undefined) {
     res.send("error");
   } else if (filter1.length > 0) {
-    
+
     let index = followers.indexOf(follower)
-    
+
     followers.splice(index, 1)
-    
+
     console.log(followers)
 
     knex("accounts_users")
       .where("account_id", "=", id)
-      .update({followed_brands: JSON.stringify(followers)})
+      .update({ followed_brands: JSON.stringify(followers) })
       .then((data) => {
         console.log("deleted");
         console.log(data);
@@ -957,21 +957,21 @@ app.post("/api/unfollowBrand", async (req, res) => {
 
 app.get("/api/checkBrandFollowed/:username/:id", (req, res) => {
   let username = req.params.username
-  let id = req.params.id 
+  let id = req.params.id
 
   knex("accounts_users")
-  .select('*')
-  .where("account_id", "=", id)
-  .andWhere("followed_brands", "ilike", `%"${username}"%`)
-  .then((data) => {
-    console.log(data)
+    .select('*')
+    .where("account_id", "=", id)
+    .andWhere("followed_brands", "ilike", `%"${username}"%`)
+    .then((data) => {
+      console.log(data)
 
-    if (data.length > 0){
+      if (data.length > 0) {
         res.send(true)
-    } else {
+      } else {
         res.send(false)
-    }
-  })
+      }
+    })
 
 })
 
@@ -981,15 +981,15 @@ app.get('/api/countBrandFollowers/:user', (req, res) => {
   let user = req.params.user;
 
   knex("accounts_users")
-  .count("user_name")
-  .where("followed_brands", "ilike", `%"${user}"%`)
-  .then((data) => {
+    .count("user_name")
+    .where("followed_brands", "ilike", `%"${user}"%`)
+    .then((data) => {
 
-    let count = data[0].count
-    res.send(count)
-   
-    console.log(count)
-  })
+      let count = data[0].count
+      res.send(count)
+
+      console.log(count)
+    })
 
 })
 
@@ -1042,6 +1042,21 @@ app.get("/api/getbusinessphoto/:username", async (req, res) => {
   }
   return;
 });
+
+app.get("/api/getown/:businessname/:user_id", async (req, res) => {
+  try {
+    let ownreviewdata = await knex("accounts_businesses")
+      .select("review")
+      .where("business_name", "=", req.params.businessname);
+    let final = await JSON.parse(ownreviewdata[0].review);
+    let realfinal = final.filter((data) => data.userid == req.params.user_id)
+    res.send(realfinal);
+    return
+  }
+  catch (error) { console.log(error) }
+
+  //res.send("it works")
+})
 //setting up port to listen to backend
 const port = 5000;
 app.listen(port);
