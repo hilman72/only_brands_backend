@@ -270,7 +270,7 @@ app.post("/api/createCoupon", async function (req, res) {
         used: false,
         claim_number: 0,
       })
-      .then(() => {})
+      .then(() => { })
       .catch((err) => console.log(err));
   } else {
     res.sendStatus(401);
@@ -1043,6 +1043,7 @@ app.post("/api/unfollowBrand", async (req, res) => {
   if (filter1 === undefined) {
     res.send("error");
   } else if (filter1.length > 0) {
+
     let index = followers.indexOf(follower);
 
     followers.splice(index, 1);
@@ -1062,10 +1063,12 @@ app.post("/api/unfollowBrand", async (req, res) => {
 //Check if Brand is Followed
 
 app.get("/api/checkBrandFollowed/:username/:id", (req, res) => {
+
   let username = req.params.username;
   let id = req.params.id;
 
   knex("accounts_users")
+
     .select("*")
     .where("account_id", "=", id)
     .andWhere("followed_brands", "ilike", `%"${username}"%`)
@@ -1142,6 +1145,21 @@ app.get("/api/getbusinessphoto/:username", async (req, res) => {
   }
   return;
 });
+
+app.get("/api/getown/:businessname/:user_id", async (req, res) => {
+  try {
+    let ownreviewdata = await knex("accounts_businesses")
+      .select("review")
+      .where("business_name", "=", req.params.businessname);
+    let final = await JSON.parse(ownreviewdata[0].review);
+    let realfinal = final.filter((data) => data.userid == req.params.user_id)
+    res.send(realfinal);
+    return
+  }
+  catch (error) { console.log(error) }
+
+  //res.send("it works")
+})
 
 app.post("/api/displayCoupon/", async (req, res) => {
   knex("business_coupons")
