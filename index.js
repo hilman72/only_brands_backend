@@ -750,7 +750,7 @@ app.post("/edit", async (req, res) => {
 
 app.get("/photo/:username", async (req, res) => {
   let data = await knex("accounts_users")
-    .select("photo")
+    .select()
     .where("user_name", "=", req.params.username);
   res.send(data);
 });
@@ -804,10 +804,10 @@ app.post("/editdetails", async (req, res) => {
 });
 
 //get the data from backend description from account_users
-app.get("/textdescription/:id", async (req, res) => {
+app.get("/textdescription/:username", async (req, res) => {
   let data = await knex("accounts_users")
     .select("description")
-    .where("account_id", "=", req.params.id);
+    .where("accounts_users", "=", req.params.username);
   res.send(data);
 });
 
@@ -1166,6 +1166,15 @@ app.post("/api/displayCoupon/", async (req, res) => {
     .select()
     .then((data) => res.send(data));
 });
+
+//posting details to backend
+app.post("/api/bizdetailsupload", async (req, res) => {
+  await knex("accounts_businesses")
+    .where("business_name", "=", req.body.business)
+    .update({ category: req.body.category, description: req.body.description })
+  res.send("it works");
+  return
+})
 
 //setting up port to listen to backend
 const port = 5000;
